@@ -1,0 +1,17 @@
+language: ruby
+
+# https://github.com/reviewdog/reviewdog#travis-ci--reportergithub-pr-check
+
+env:
+  global:
+    - REVIEWDOG_VERSION="0.9.11"
+
+install:
+  - mkdir -p ~/bin/ && export export PATH="~/bin/:$PATH"
+  - curl -fSL https://github.com/reviewdog/reviewdog/releases/download/$REVIEWDOG_VERSION/reviewdog_linux_amd64 -o ~/bin/reviewdog && chmod +x ~/bin/reviewdog
+
+script:
+  - ls
+  - gem install rubocop
+  - reviewdog -conf=.reviewdog.yml -reporter=github-pr-check
+  - rubocop || true
