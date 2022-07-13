@@ -1,0 +1,77 @@
+# # https://docs.github.com/ja/actions/quickstart
+
+# https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions#name
+name: 'workflow0'
+
+# https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions#on
+# https://docs.github.com/ja/actions/using-workflows/events-that-trigger-workflows#push
+on: [push]
+
+# on:
+#   push:
+#     branches:
+#       - main
+
+# on:
+#   workflow_dispatch:
+#   push:
+#     branches:
+#       - main
+#   pull_request:
+
+# https://docs.github.com/ja/actions/using-workflows/events-that-trigger-workflows#schedule
+# on:
+#   schedule:
+#     # *はYAMLにおける特殊文字なので、この文字列はクオートしなければならない
+#     - cron:  '30 5,17 * * *'
+
+# https://docs.github.com/en/actions/using-jobs/using-environments-for-jobs
+env:
+  ENV0: value0
+
+# https://docs.github.com/en/actions/using-jobs/assigning-permissions-to-jobs
+# permissions:
+#   contents: read
+#   # Needed for the 'trilom/file-changes-action' action
+#   pull-requests: read
+
+# This allows a subsequently queued workflow run to interrupt previous runs
+concurrency:
+  #      '${{ github.workflow }} @ ${{ github.event.pull_request.head.label || github.head_ref || github.ref }}'
+  #      '${{ "workflow0"     }} @ ${{ undefined?                           || ""              || "refs/heads/actions" }}'
+  # workflow0 @ refs/heads/actions
+  group: '${{ github.workflow }} @ ${{ github.event.pull_request.head.label || github.head_ref || github.ref }}'
+  cancel-in-progress: true
+
+jobs:
+  job0:
+    # # runs-on: ${{ fromJSON('["ubuntu-latest", "self-hosted"]')[github.repository == 'github/docs-internal'] }}
+    # # runs-on: ${{           ["ubuntu-latest", "self-hosted"]  ['wataash/sandbox' == 'github/docs-internal'] }}
+    # # runs-on: ${{           ["ubuntu-latest", "self-hosted"]  [0] }}
+    # # runs-on: ${{            "ubuntu-latest" }}
+    # # runs-on: ubuntu-latest
+    # runs-on: ${{ fromJSON('["ubuntu-latest", "self-hosted"]')[github.repository == 'github/docs-internal'] }}
+
+    runs-on: ${{ fromJSON('["self-hosted", "ubuntu-latest"]')[github.server_url == 'https://github.com'] }}
+
+    env:
+      ENV1: value1
+    steps:
+      - name: sandbox_step
+        # if: ${{ false }}
+        run: |
+          :
+
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Gather files changed
+        uses: trilom/file-changes-action@a6ca26c14274c33b15e6499323aac178af06ad4b
+        with:
+          fileOutput: 'json'
+      - name: Show files changed
+        run: |
+          pwd             # /home/runner/work/sandbox/sandbox
+          ls -AFl         # repo (cloned by actions/checkout)
+          ls -AFl $HOME/  # files.json files_added.json files_modified.json files_removed.json files_renamed.json
+          cat $HOME/files.json
